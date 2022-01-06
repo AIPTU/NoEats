@@ -16,7 +16,7 @@ A PocketMine-MP plugin to regulate player hunger and prohibit eating certain foo
 # Permissions
 
 - Permission `noeats.bypass` allows the user to bypass eating.
-- Permission `hunger.bypass` allows the user to bypass hunger.
+- Permission `noeats.bypass.hunger` allows the user to bypass hunger.
 
 # Default Config
 ```yaml

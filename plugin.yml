@@ -9,7 +9,7 @@ permissions:
   noeats.bypass:
     default: op
     description: Allows the user to bypass eating.
-  hunger.bypass:
+  noeats.bypass.hunger:
     default: op
     description: Allows the user to bypass hunger.
 ...

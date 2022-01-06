@@ -76,11 +76,7 @@ final class NoEats extends PluginBase implements Listener
 		}
 
 		if (!$this->getConfigProperty()->getPropertyBool('hunger', true)) {
-			if (!$this->checkWorld($player->getWorld())) {
-				return;
-			}
-
-			if ($player->hasPermission('hunger.bypass')) {
+			if (!$player->hasPermission('noeats.bypass.hunger') && !$this->checkWorld($player->getWorld())) {
 				return;
 			}
 
@@ -104,11 +100,7 @@ final class NoEats extends PluginBase implements Listener
 			}
 
 			if ($item->equals($itemEats)) {
-				if (!$this->checkWorld($player->getWorld())) {
-					return;
-				}
-
-				if ($player->hasPermission('noeats.bypass')) {
+				if (!$player->hasPermission('noeats.bypass') && !$this->checkWorld($player->getWorld())) {
 					return;
 				}
 
