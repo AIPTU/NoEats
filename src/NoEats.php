@@ -28,17 +28,11 @@ declare(strict_types=1);
 
 namespace aiptu\noeats;
 
-use pocketmine\event\Listener;
-use pocketmine\event\player\PlayerExhaustEvent;
-use pocketmine\event\player\PlayerItemConsumeEvent;
-use pocketmine\item\Food;
 use pocketmine\item\Item;
 use pocketmine\item\LegacyStringToItemParser;
 use pocketmine\item\LegacyStringToItemParserException;
 use pocketmine\item\StringToItemParser;
-use pocketmine\player\Player;
 use pocketmine\plugin\PluginBase;
-use pocketmine\utils\TextFormat;
 use pocketmine\world\World;
 use function explode;
 use function in_array;
@@ -46,7 +40,7 @@ use function rename;
 use function str_replace;
 use function trim;
 
-final class NoEats extends PluginBase implements Listener
+final class NoEats extends PluginBase
 {
 	private const CONFIG_VERSION = 1.0;
 
@@ -55,93 +49,21 @@ final class NoEats extends PluginBase implements Listener
 
 	private int $mode;
 
-	private ConfigProperty $configProperty;
+	private TypedConfig $typedConfig;
 
 	public function onEnable(): void
 	{
-		$this->getServer()->getPluginManager()->registerEvents($this, $this);
-
 		$this->checkConfig();
+
+		$this->getServer()->getPluginManager()->registerEvents(new EventHandler($this), $this);
 	}
 
-	public function onPlayerExhaust(PlayerExhaustEvent $event): void
+	public function getTypedConfig(): TypedConfig
 	{
-		if ($event->isCancelled()) {
-			return;
-		}
-
-		$player = $event->getPlayer();
-		if (!$player instanceof Player) {
-			return;
-		}
-
-		if (!$this->getConfigProperty()->getPropertyBool('hunger', true)) {
-			if (!$player->hasPermission('noeats.bypass.hunger') && !$this->checkWorld($player->getWorld())) {
-				return;
-			}
-
-			$event->cancel();
-		}
+		return $this->typedConfig;
 	}
 
-	public function onPlayerItemConsume(PlayerItemConsumeEvent $event): void
-	{
-		if ($event->isCancelled()) {
-			return;
-		}
-
-		$player = $event->getPlayer();
-		$item = $event->getItem();
-
-		foreach ($this->getConfigProperty()->getPropertyArray('items.list', []) as $value) {
-			$itemEats = $this->checkItem($value);
-			if (!$itemEats instanceof Food) {
-				continue;
-			}
-
-			if ($item->equals($itemEats)) {
-				if (!$player->hasPermission('noeats.bypass') && !$this->checkWorld($player->getWorld())) {
-					return;
-				}
-
-				$player->sendPopup(TextFormat::colorize($this->getConfigProperty()->getPropertyString('message', "&cYou can't eat your food here")));
-				$event->cancel();
-			}
-		}
-	}
-
-	public function getConfigProperty(): ConfigProperty
-	{
-		return $this->configProperty;
-	}
-
-	private function checkConfig(): void
-	{
-		$this->saveDefaultConfig();
-
-		if (!$this->getConfig()->exists('config-version') || ($this->getConfig()->get('config-version', self::CONFIG_VERSION) !== self::CONFIG_VERSION)) {
-			$this->getLogger()->notice('Your configuration file is outdated, updating the config.yml...');
-			$this->getLogger()->notice('The old configuration file can be found at config.old.yml');
-
-			rename($this->getDataFolder() . 'config.yml', $this->getDataFolder() . 'config.old.yml');
-
-			$this->reloadConfig();
-		}
-
-		$this->configProperty = new ConfigProperty($this->getConfig());
-
-		foreach ($this->getConfigProperty()->getPropertyArray('items.list', []) as $value) {
-			$this->checkItem($value);
-		}
-
-		match ($this->getConfigProperty()->getPropertyString('worlds.mode', 'blacklist')) {
-			'blacklist' => $this->mode = self::MODE_BLACKLIST,
-			'whitelist' => $this->mode = self::MODE_WHITELIST,
-			default => throw new \InvalidArgumentException('Invalid mode selected, must be either "blacklist" or "whitelist"!'),
-		};
-	}
-
-	private function checkItem(string $string): Item
+	public function checkItem(string $string): Item
 	{
 		try {
 			$item = LegacyStringToItemParser::getInstance()->parse($string);
@@ -154,12 +76,38 @@ final class NoEats extends PluginBase implements Listener
 		return $item;
 	}
 
-	private function checkWorld(World $world): bool
+	public function checkWorld(World $world): bool
 	{
 		if ($this->mode === self::MODE_BLACKLIST) {
-			return !(in_array($world->getFolderName(), $this->getConfigProperty()->getPropertyArray('worlds.list', []), true));
+			return !(in_array($world->getFolderName(), $this->getTypedConfig()->getStringList('worlds.list'), true));
 		}
 
-		return in_array($world->getFolderName(), $this->getConfigProperty()->getPropertyArray('worlds.list', []), true);
+		return in_array($world->getFolderName(), $this->getTypedConfig()->getStringList('worlds.list'), true);
+	}
+
+	private function checkConfig(): void
+	{
+		$this->saveDefaultConfig();
+
+		if (!$this->getConfig()->exists('config-version') || ($this->getConfig()->get('config-version', self::CONFIG_VERSION) !== self::CONFIG_VERSION)) {
+			$this->getLogger()->warning('An outdated config was provided attempting to generate a new one...');
+			if (!rename($this->getDataFolder() . 'config.yml', $this->getDataFolder() . 'config.old.yml')) {
+				$this->getLogger()->critical('An unknown error occurred while attempting to generate the new config');
+				$this->getServer()->getPluginManager()->disablePlugin($this);
+			}
+			$this->reloadConfig();
+		}
+
+		$this->typedConfig = new TypedConfig($this->getConfig());
+
+		foreach ($this->getTypedConfig()->getStringList('items.list') as $value) {
+			$this->checkItem($value);
+		}
+
+		match ($this->getTypedConfig()->getString('worlds.mode', 'blacklist')) {
+			'blacklist' => $this->mode = self::MODE_BLACKLIST,
+			'whitelist' => $this->mode = self::MODE_WHITELIST,
+			default => throw new \InvalidArgumentException('Invalid mode selected, must be either "blacklist" or "whitelist"!'),
+		};
 	}
 }
