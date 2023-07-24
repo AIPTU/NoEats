@@ -1,15 +1,13 @@
----
 name: NoEats
 main: aiptu\noeats\NoEats
 src-namespace-prefix: aiptu\noeats
 version: 1.1.0
-api: [4.0.0]
+api: [5.0.0]
 author: AIPTU
 permissions:
-  noeats.bypass:
+  noeats.bypass.eating:
     default: op
-    description: Allows the user to bypass eating.
+    description: Allows the user to bypass restrictions on eating food items.
   noeats.bypass.hunger:
     default: op
-    description: Allows the user to bypass hunger.
-...
+    description: Allows the user to bypass hunger event cancellation.
