@@ -24,7 +24,7 @@ A PocketMine-MP plugin to regulate player hunger and prohibit eating certain foo
 # Default Config
 ```yaml
 # Do not change this (Only for internal use)!
-config-version: 1.1
+config-version: 1.2
 
 # If set to true, players will experience hunger. If set to false, players won't experience hunger.
 # This option allows you to enable or disable the hunger mechanic for players in the server.
