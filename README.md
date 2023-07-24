@@ -7,50 +7,61 @@ A PocketMine-MP plugin to regulate player hunger and prohibit eating certain foo
 
 # Features
 
-- Managing hunger.
-- Permission bypass.
-- Supports `&` as formatting codes.
-- Custom item that can't be eat.
-- Per world support.
-- Lightweight and open source ❤️
+- `Food Item Restriction`: Administrators can define a list of food items that players are not allowed to eat.
+- `World-Specific Configuration`: Different worlds can have different food item restrictions.
+- `Mode Selection`: Choose between "None," "Blacklist," or "Whitelist" mode to determine how world-specific configurations are applied.
+- `Hunger Event Control`: Administrators can enable or disable hunger events for players.
+- `Customizable Messages`: Customize the message displayed to players when they attempt to eat a restricted food item.
+- `Bypass Permissions`: Operators can be granted permissions to bypass the food item restrictions and hunger event cancellation.
+- `World Validation`: It checks if the worlds listed in the configuration file exist and are generated in the server. Invalid worlds are ignored.
+- `Item Validation`: It ensures that the food items listed in the configuration are valid edible items. Non-edible items are ignored.
 
 # Permissions
 
-- Permission `noeats.bypass` allows the user to bypass eating.
-- Permission `noeats.bypass.hunger` allows the user to bypass hunger.
+- `noeats.bypass.eating`: Players with this permission can bypass the plugin's restrictions on eating food items.
+- `noeats.bypass.hunger`: Players with this permission can bypass the cancellation of hunger events imposed by the plugin.
 
 # Default Config
 ```yaml
----
 # Do not change this (Only for internal use)!
 config-version: 1.1
 
-# If you want to activate player hunger.
+# If set to true, players will experience hunger. If set to false, players won't experience hunger.
+# This option allows you to enable or disable the hunger mechanic for players in the server.
 hunger: true
 
-# Message used when canceling a player who ate food.
-# Use "§" or "&" to color the message.
+# The message displayed when a player attempts to eat a restricted food item.
+# You can use color codes by using "§" or "&" before the color code.
+# This message will be shown to players when they try to eat an item that is restricted based on the configuration.
 message: "&cYou can't eat your food here"
 
+# Item Restriction Settings
 items:
-  # List of items that can't be eat.
-  # This must be food to work.
-  # If the item has meta, you can use the format "minecraft:id:meta".
+  # List of food items that players are not allowed to eat.
+  # This list determines which food items are restricted for consumption by players.
   list:
-    - "minecraft:golden_apple"
-    - "minecraft:cooked_beef"
-    - "minecraft:cooked_chicken"
+    - "golden_apple"
+    - "cooked_beef"
+    - "cooked_chicken"
 
+# World Restriction Settings
 worlds:
-  # The mode can be either "blacklist" or "whitelist".
-  # The blacklist mode will only cancel players to eat and players to be hungry according to the name of a predetermined world folder and will allow player feeding and hunger players around the world.
-  # The whitelist mode will only allow players to eat and players to be hungry according to the name of a predetermined world folder and will cancel player feeding and starve players around the world.
+  # The mode can be either "blacklist," "whitelist," or "none".
+  # - "blacklist" mode will prevent players from eating in the specified worlds (blacklisted) and allow eating in other worlds.
+  # - "whitelist" mode will only allow players to eat in the specified worlds (whitelisted) and prevent eating in other worlds.
+  # - "none" mode will not apply any restrictions, and eating will be allowed in all worlds.
   mode: "blacklist"
-  # List of world folder names to blacklist/whitelist (depending on the mode set above).
-  # Leave it blank if you want to let players eat all over the world.
+
+  # List of world folder names to be blacklisted or whitelisted (depending on the mode set above).
+  # If "mode" is set to "blacklist" or "whitelist," add the world folder names accordingly.
+  # If "mode" is set to "none," leave the "list" empty ([]) to allow eating in all worlds.
   list:
-    - "world"
-...
+    - "world"  # Example: The "world" world folder is blacklisted, and players can't eat here.
+    - "world_nether"  # Example: The "world_nether" world folder is blacklisted, and players can't eat here.
+
+# You can add more worlds to the list as needed.
+# Note: Make sure to use the correct world folder names as specified in your PocketMine-MP server configuration.
+# To disable world-specific eating restriction and allow eating in all worlds, set "mode" to "none" and leave the "list" empty ([]) or remove the "list" entirely.
 
 ```
 
